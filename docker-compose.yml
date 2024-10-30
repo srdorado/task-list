@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+    mariadb:
+        image: mariadb:10.6
+        container_name: task_list_mariadb_container
+        restart: always
+        volumes:
+            - mariadb_data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: rootPass
+            MYSQL_DATABASE: laravel_db
+            MYSQL_USER: laravel_user
+            MYSQL_PASSWORD: laravel_pass
+        ports:
+            - "3306:3306"
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: laravel_task_list
+        ports:
+            - "8000:8000"
+        depends_on:
+            - mariadb
+        environment:
+            - DB_CONNECTION=mysql
+            - DB_HOST=task_list_mariadb_container
+            - DB_PORT=3306
+            - DB_DATABASE=laravel_db
+            - DB_USERNAME=laravel_user
+            - DB_PASSWORD=laravel_pass
+        volumes:
+            - .:/var/www/html
+
+    adminer:
+        image: adminer:4.8.1
+        container_name: task_list_adminer
+        environment:
+            ADMINER_DEFAULT_SERVER: task_list_mariadb_container
+        restart: always
+        ports:
+            - "8080:8080"
+
+volumes:
+    mariadb_data:
